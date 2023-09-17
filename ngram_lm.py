@@ -1,10 +1,11 @@
+import math
 import preprocess_data
+from itertools import chain
 
 class NgramModel:
-  def __init__(self, vocab: list[str], train: list[list[str]], dev: list[list[str]], test: list[list[str]]) -> None:
+  def __init__(self, vocab: list[str], train: list[list[str]], test: list[list[str]]) -> None:
     self.vocab = vocab
     self.train = train
-    self.dev = dev
     self.test = test
   
   """
@@ -50,9 +51,10 @@ class NgramModel:
 
 def main():
   preprocess = preprocess_data.Preprocess()
-  vocab, train, dev, test = preprocess.load_from_pickle()
+  vocab, train, test = preprocess.load_from_pickle()
 
-  model = NgramModel(vocab, train, dev, test)
+  model = NgramModel(vocab, train, test)
+  flatten_test = list(chain.from_iterable(test))
 
   """
   EXAMPLE:
@@ -64,14 +66,14 @@ def main():
   bigram_counts = model.generate_n_grams(train, 2)
   trigram_counts = model.generate_n_grams(train, 3)
 
-  perplexity_train = model.count_perplexity(train[0], unigram_counts, bigram_counts, len(vocab), laplace_number=1.0)
-  print(f"n = 1, Perplexity: {perplexity_train:.4f}")
+  perplexity_test_12 = model.count_perplexity(flatten_test, unigram_counts, bigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 1, Perplexity: {perplexity_test_12:.4f}")
 
-  perplexity_train = model.count_perplexity(train[0], bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
+  perplexity_test_23 = model.count_perplexity(flatten_test, bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 2, Perplexity: {perplexity_test_23:.4f}")
+
+  perplexity_train = model.count_perplexity(['<s>', 'cagar', 'budaya', 'merupakan', 'aset', 'di', 'indonesia', '</s>'], bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
   print(f"n = 2, Perplexity: {perplexity_train:.4f}")
 
-  perplexity_train = model.count_perplexity(['<s>', 'cagar', 'budaya', 'di', 'indonesia', '</s>'], unigram_counts, bigram_counts, len(vocab), laplace_number=1.0)
-  print(f"n = 1, Perplexity: {perplexity_train:.4f}")
-
-# if __name__ == "__main__":
-#   main()
+if __name__ == "__main__":
+  main()

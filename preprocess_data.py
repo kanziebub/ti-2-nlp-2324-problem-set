@@ -1,13 +1,11 @@
 import pickle
 import numpy as np
-from nltk.tokenize import word_tokenize
+from aksara import MultiwordTokenizer
 
 class Preprocess:
   def __init__(self) -> None:
     self.data: list[str] = None
-
     self.train_data: list[str] = None
-    self.dev_data: list[str] = None
     self.test_data: list[str] = None
   
   """
@@ -15,12 +13,10 @@ class Preprocess:
   - Anda diberikan keleluasaan sesuai dengan computing power yang Anda miliki.
   - Tidak ada keharusan menggunakan keseluruhan ~400,000 kalimat. Namun, pastikan jumlah kalimat jangan terlalu sedikit.
   """
-  def load_data(self, path: str, num_of_data: int) -> None:
-    with open(path, 'r', encoding='utf-8') as f:
+  def load_data(self) -> list[str]:
+    with open('./data/idwiki-corpus.txt', 'r', encoding='utf-8') as f:
       data = f.readlines()
-    self.data = data[:num_of_data]
-  
-  def get_raw_data(self) -> list[str]:
+    self.data = data
     return self.data
   
   """
@@ -48,20 +44,18 @@ class Preprocess:
     tokenized: list[str] = self.tokenize_sentences(splitted)
     return tokenized
   
-  def train_dev_test_split(self, data: list[list[str]]):
+  def train_test_split(self, data: list[list[str]]):
     tokenized = self.get_tokenized_data(data)
     np.random.seed(42)
     np.random.shuffle(tokenized)
 
     total_samples = len(tokenized)
     train_size = int(.8 * total_samples)  # 80% for training
-    dev_size = int(.1 * total_samples)    # 10% for development
-    test_size = total_samples - train_size - dev_size # 10% for testing
+    test_size = int(.2 * total_samples)   # 20% for testing
 
     self.train_data = tokenized[:train_size]
-    self.dev_data = tokenized[train_size:train_size + dev_size]
     self.test_data = tokenized[total_samples - test_size:]
-    return self.train_data, self.dev_data, self.test_data
+    return self.train_data, self.test_data
 
   """
   - Fungsionalitas pada method di bawah ini adalah menghitung kemunculan kata di dalam corpus.
@@ -92,12 +86,11 @@ class Preprocess:
     # TODO: Implement based on the given description
     pass
   
-  def preprocess_raw_data(self, train, dev, test, threshold):
+  def preprocess_raw_data(self, train, test, threshold):
     vocab = self.filter_vocab_by_threshold(train, threshold)
     train_handled = self.handle_oov_with_unk(train, vocab)
-    dev_handled = self.handle_oov_with_unk(dev, vocab)
     test_handled = self.handle_oov_with_unk(test, vocab)
-    return vocab, train_handled, dev_handled, test_handled
+    return vocab, train_handled, test_handled
   
   def save_to_pickle(self, vocab: list[str], train: list[list[str]], dev: list[list[str]], test: list[list[str]]) -> None:
     filename = {'vocab': vocab, 'train': train, 'dev': dev, 'test': test}
@@ -110,11 +103,9 @@ class Preprocess:
       vocab = pickle.load(f)
     with open('./data/idwiki-train.pkl', 'rb') as f:
       train = pickle.load(f)
-    with open('./data/idwiki-dev.pkl', 'rb') as f:
-      dev = pickle.load(f)
     with open('./data/idwiki-test.pkl', 'rb') as f:
       test = pickle.load(f)
-    return vocab, train, dev, test
+    return vocab, train, test
   
 def main():
   preprocess = Preprocess()
@@ -125,24 +116,22 @@ def main():
   - Pada contoh ini digunakan sebanyak 10,000 kalimat.
   - Silakan Anda atur sesuai dengan kebutuhan Anda.
   """
-  preprocess.load_data('./data/idwiki.txt', 10000)
-  raw_data = preprocess.get_raw_data()
+  data = preprocess.load_data()
 
   print('Splitting data...')
-  train, dev, test = preprocess.train_dev_test_split(raw_data)
+  train, test = preprocess.train_dev_test_split(data)
 
   """
   EXAMPLE:
-  - Pada contoh ini ditetapkan threshold sebesar 1.
-  - Artinya setiap kata yang kemunculannya di bawah 1 akan dihilangkan dari koleksi.
-  - Silakan Anda lakukan variasi threshold number tsb, entah 2, 5, 7, 10, dst.
+  - Pada contoh ini ditetapkan threshold sebesar 3.
+  - Artinya setiap kata yang kemunculannya di bawah 3 akan dihilangkan dari koleksi.
   """
   print('Pre-processing data...')
-  vocab, train_handled, dev_handled, test_handled = preprocess.preprocess_raw_data(train, dev, test, 1)
+  vocab, train_handled, test_handled = preprocess.preprocess_raw_data(train, test, 3)
 
   print('Saving data...')
-  preprocess.save_to_pickle(vocab, train_handled, dev_handled, test_handled)
+  preprocess.save_to_pickle(vocab, train_handled, test_handled)
   print('Finish!')
 
-# if __name__ == "__main__":
-#   main()
+if __name__ == "__main__":
+  main()
