@@ -72,8 +72,8 @@ def main():
   perplexity_test_23 = model.count_perplexity(flatten_test, bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
   print(f"n = 2, Perplexity: {perplexity_test_23:.4f}")
 
-  perplexity_train = model.count_perplexity(['<s>', 'cagar', 'budaya', 'merupakan', 'aset', 'di', 'indonesia', '</s>'], bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
-  print(f"n = 2, Perplexity: {perplexity_train:.4f}")
+  perplexity_test_random = model.count_perplexity(['<s>', 'cagar', 'budaya', 'merupakan', 'aset', 'di', 'indonesia', '</s>'], bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 2, Perplexity: {perplexity_test_random:.4f}")
 
 if __name__ == "__main__":
   main()

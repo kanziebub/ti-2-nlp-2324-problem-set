@@ -66,7 +66,7 @@ class Preprocess:
     pass
   
   """
-  - Fungsionalitas pada method di bawah ini adalah melakukan filtering terhadap kata yang kemunculannyna di bawah threshold/batasan tertentu.
+  - Fungsionalitas pada method di bawah ini adalah melakukan filtering terhadap kata yang kemunculannya di bawah threshold/batasan tertentu.
   - Misalkan Anda menetapkan setiap kata yang kemunculannya di bawah 5 tidak perlu diproses (threshold = 5).
   - Anda diharapkan memanfaatkan fungsionalitas method word_map yang telah diimplementasikan sebelumnya.
   - Expected output berupa kumpulan kata yang kemunculannya di atas atau sama dengan (greater than or equal to) threshold.
@@ -92,8 +92,8 @@ class Preprocess:
     test_handled = self.handle_oov_with_unk(test, vocab)
     return vocab, train_handled, test_handled
   
-  def save_to_pickle(self, vocab: list[str], train: list[list[str]], dev: list[list[str]], test: list[list[str]]) -> None:
-    filename = {'vocab': vocab, 'train': train, 'dev': dev, 'test': test}
+  def save_to_pickle(self, vocab: list[str], train: list[list[str]], test: list[list[str]]) -> None:
+    filename = {'vocab': vocab, 'train': train, 'test': test}
     for key, value in filename.items():
       with open(f'./data/idwiki-{key}.pkl', 'wb+') as f:
         pickle.dump(value, f)
@@ -119,7 +119,7 @@ def main():
   data = preprocess.load_data()
 
   print('Splitting data...')
-  train, test = preprocess.train_dev_test_split(data)
+  train, test = preprocess.train_test_split(data)
 
   """
   EXAMPLE:
