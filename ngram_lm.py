@@ -50,8 +50,13 @@ class NgramModel:
     pass
 
 def main():
+  """
+  EXAMPLE:
+  - Pada contoh ini menggunakan scenario no lowercasing (cased)
+  """
+  lowercase: bool = False
   preprocess = preprocess_data.Preprocess()
-  vocab, train, test = preprocess.load_from_pickle()
+  vocab, train, test = preprocess.load_from_pickle(lowercase)
 
   model = NgramModel(vocab, train, test)
   flatten_test = list(chain.from_iterable(test))
@@ -66,12 +71,59 @@ def main():
   bigram_counts = model.generate_n_grams(train, 2)
   trigram_counts = model.generate_n_grams(train, 3)
 
-  perplexity_test_12 = model.count_perplexity(flatten_test, unigram_counts, bigram_counts, len(vocab), laplace_number=1.0)
-  print(f"n = 1, Perplexity: {perplexity_test_12:.4f}")
+  """
+  EXAMPLE:
+  - Di bawah ini merupakan contoh/cara untuk generate kalimat dari n-gram LM
+  """
 
-  perplexity_test_23 = model.count_perplexity(flatten_test, bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
-  print(f"n = 2, Perplexity: {perplexity_test_23:.4f}")
+  """
+  UNIGRAM
+  """
+  generate_S_unigram = model.probabilities_for_all_vocab(['saya'], train, unigram_counts, vocab)
+  print(max(generate_S_unigram, key=generate_S_unigram.get))
+  print(sorted(generate_S_unigram.items(), key=lambda x:x[1], reverse=True)[:5])
 
+  """
+  BIGRAM
+  """
+  generate_S_bigram = model.probabilities_for_all_vocab(['Berkas'], unigram_counts, bigram_counts, vocab)
+  print(max(generate_S_bigram, key=generate_S_bigram.get))
+  print(sorted(generate_S_bigram.items(), key=lambda x:x[1], reverse=True)[:5])
+
+  """
+  TRIGRAM
+  """
+  generate_S_trigram = model.probabilities_for_all_vocab(['pergi'], bigram_counts, trigram_counts, vocab)
+  print(max(generate_S_trigram, key=generate_S_trigram.get))
+  print(sorted(generate_S_trigram.items(), key=lambda x:x[1], reverse=True)[:5])
+
+
+  """
+  - Di bawah ini merupakan contoh/cara untuk menilai perplexity dari kalimat yang telah Anda generate dari langkah sebelumnya.
+  """
+
+  """
+  UNIGRAM
+  """
+  perplexity_test_unigram = model.count_perplexity(flatten_test, train, unigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 1, Perplexity: {perplexity_test_unigram:.4f}")
+
+  """
+  BIGRAM
+  """
+  perplexity_test_bigram = model.count_perplexity(flatten_test, unigram_counts, bigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 1, Perplexity: {perplexity_test_bigram:.4f}")
+
+
+  """
+  TRIGRAM
+  """
+  perplexity_test_trigram = model.count_perplexity(flatten_test, bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
+  print(f"n = 2, Perplexity: {perplexity_test_trigram:.4f}")
+
+  """
+  TRIGRAM from generated sentence
+  """
   perplexity_test_random = model.count_perplexity(['<s>', 'cagar', 'budaya', 'merupakan', 'aset', 'di', 'indonesia', '</s>'], bigram_counts, trigram_counts, len(vocab), laplace_number=1.0)
   print(f"n = 2, Perplexity: {perplexity_test_random:.4f}")
 

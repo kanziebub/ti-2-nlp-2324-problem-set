@@ -9,15 +9,28 @@ class Preprocess:
     self.test_data: list[str] = None
   
   """
-  - Parameter num_of_data merupakan jumlah data yang ingin Anda proses.
-  - Anda diberikan keleluasaan sesuai dengan computing power yang Anda miliki.
-  - Tidak ada keharusan menggunakan keseluruhan ~400,000 kalimat. Namun, pastikan jumlah kalimat jangan terlalu sedikit.
+  - Parameter path merupakan lokasi data diletakkan.
+  - Data disarankan untuk disimpan di dalam folder data yang telah disediakan
+  - Di dalam folder tersebut tersedia tiga jenis data, yakni idwiki-corpus.txt, idwiki-train.txt, dan idwiki-test.txt
+  - Rasio antara train:test yang terdapat pada file idwiki-train.txt dan idwiki-test.txt merupakan 80:20
+  - idwiki-corpus.txt merupakan gabungan antara idwiki-train.txt dan idwiki-test.txt
+  - idwiki-corpus.txt disediakan untuk Anda yang ingin bereksperimen dengan rasio train:test atau sejenisnya.
   """
-  def load_data(self) -> list[str]:
-    with open('./data/idwiki-corpus.txt', 'r', encoding='utf-8') as f:
+  def load_data(self, path: str) -> None:
+    with open(path, 'r', encoding='utf-8') as f:
       data = f.readlines()
-    self.data = data
-    return self.data
+    
+    data_type = path.split('/')[-1].split('-')[-1].split('.')[0]
+    if data_type == 'train':
+      self.train_data = data
+    elif data_type == 'test':
+      self.test_data = data
+
+  def get_train_data(self) -> list[str]:
+    return self.train_data
+  
+  def get_test_data(self) -> list[str]:
+    return self.test_data
   
   """
   - Fungsionalitas method di bawah ini adalah melakukan pembersihan kalimat dari simbol newline ('\n').
@@ -31,31 +44,19 @@ class Preprocess:
   """
   - Fungsionalitas method di bawah ini adalah melakukan tokenisasi pada kalimat.
   - Sebelum mengerjakan method ini, pastikan Anda telah melakukan eksplorasi pada dataset.
+  - Perlu diperhatikan terdapat dua macam parameter yang disediakan, yakni data dan lower. Parameter lower digunakan untuk melakukan eksperimen lowercasing dan non-lowercasing.
   - Character/kata pada dataset tidak seluruhnya ascii/latin. Lakukan penanganan/filtering terhadap character/kata non-ascii.
   - Perlu diperhatikan bahwa n-gram merupakan case-sensitive model. Kata "saya" dan "Saya" merupakan dua hal yang berbeda. Silakan Anda tentukan penanganan yang Anda rasa terbaik.
   - Output format yang diharapkan adalah list of lists of strings.
   """
-  def tokenize_sentences(self, data: list[str]) -> list[list[str]]:
+  def tokenize_sentences(self, data: list[str], lower: bool) -> list[list[str]]:
     # TODO: Implement based on the given description
     pass
   
-  def get_tokenized_data(self, data: list[str]) -> list[list[str]]:
+  def get_tokenized_data(self, data: list[str], lower: bool) -> list[list[str]]:
     splitted: list[str] = self.split_sentences(data)
-    tokenized: list[str] = self.tokenize_sentences(splitted)
+    tokenized: list[str] = self.tokenize_sentences(splitted, lower)
     return tokenized
-  
-  def train_test_split(self, data: list[list[str]]):
-    tokenized = self.get_tokenized_data(data)
-    np.random.seed(42)
-    np.random.shuffle(tokenized)
-
-    total_samples = len(tokenized)
-    train_size = int(.8 * total_samples)  # 80% for training
-    test_size = int(.2 * total_samples)   # 20% for testing
-
-    self.train_data = tokenized[:train_size]
-    self.test_data = tokenized[total_samples - test_size:]
-    return self.train_data, self.test_data
 
   """
   - Fungsionalitas pada method di bawah ini adalah menghitung kemunculan kata di dalam corpus.
@@ -92,18 +93,24 @@ class Preprocess:
     test_handled = self.handle_oov_with_unk(test, vocab)
     return vocab, train_handled, test_handled
   
-  def save_to_pickle(self, vocab: list[str], train: list[list[str]], test: list[list[str]]) -> None:
+  def save_to_pickle(self, vocab: list[str], train: list[list[str]], test: list[list[str]], lower: bool) -> None:
     filename = {'vocab': vocab, 'train': train, 'test': test}
     for key, value in filename.items():
-      with open(f'./data/idwiki-{key}.pkl', 'wb+') as f:
+      filename = f'./data/idwiki-{key}-uncased.pkl'
+      if lower:
+        filename = f'./data/idwiki-{key}-cased.pkl'
+      with open(filename, 'wb+') as f:
         pickle.dump(value, f)
   
-  def load_from_pickle(self):
-    with open('./data/idwiki-vocab.pkl', 'rb') as f:
+  def load_from_pickle(self, lower: bool):
+    suffix = 'uncased'
+    if lower:
+      suffix = 'cased'
+    with open(f'./data/idwiki-vocab-{suffix}.pkl', 'rb') as f:
       vocab = pickle.load(f)
-    with open('./data/idwiki-train.pkl', 'rb') as f:
+    with open(f'./data/idwiki-train-{suffix}.pkl', 'rb') as f:
       train = pickle.load(f)
-    with open('./data/idwiki-test.pkl', 'rb') as f:
+    with open(f'./data/idwiki-test-{suffix}.pkl', 'rb') as f:
       test = pickle.load(f)
     return vocab, train, test
   
@@ -111,15 +118,19 @@ def main():
   preprocess = Preprocess()
 
   print('Loading data...')
+  preprocess.load_data('./data/idwiki-train.txt')
+  preprocess.load_data('./data/idwiki-test.txt')
+
+  train = preprocess.get_train_data()
+  test = preprocess.get_test_data()
+
   """
   EXAMPLE:
-  - Pada contoh ini digunakan sebanyak 10,000 kalimat.
-  - Silakan Anda atur sesuai dengan kebutuhan Anda.
+  - Pada contoh ini menggunakan skenario no lowercasing (cased)
   """
-  data = preprocess.load_data()
-
-  print('Splitting data...')
-  train, test = preprocess.train_test_split(data)
+  lowercase: bool = False
+  tokenized_train = preprocess.get_tokenized_data(train, lowercase)
+  tokenized_test = preprocess.get_tokenized_data(test, lowercase)
 
   """
   EXAMPLE:
@@ -127,10 +138,10 @@ def main():
   - Artinya setiap kata yang kemunculannya di bawah 3 akan dihilangkan dari koleksi.
   """
   print('Pre-processing data...')
-  vocab, train_handled, test_handled = preprocess.preprocess_raw_data(train, test, 3)
+  vocab, train_handled, test_handled = preprocess.preprocess_raw_data(tokenized_train, tokenized_test, 3)
 
   print('Saving data...')
-  preprocess.save_to_pickle(vocab, train_handled, test_handled)
+  preprocess.save_to_pickle(vocab, train_handled, test_handled, lowercase)
   print('Finish!')
 
 if __name__ == "__main__":
