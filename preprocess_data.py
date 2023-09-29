@@ -132,8 +132,6 @@ class Preprocess:
   def preprocess_raw_data(self, train, test, threshold):
     vocab = self.filter_vocab_by_threshold(train, threshold)
     train_handled = self.handle_oov_with_unk(train, vocab)
-    print("TRAIN HANDLED")
-    print(train_handled)
     test_handled = self.handle_oov_with_unk(test, vocab)
     return vocab, train_handled, test_handled
   
