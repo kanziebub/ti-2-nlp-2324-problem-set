@@ -9,14 +9,35 @@ class NgramModel:
     self.test = test
   
   """
-  - Fungsionalitas model ini adalah menghasilkan koleksi n-gram model.
-  - Seperti 2-gram, artinya di dalam koleksi terdapat pasangan, seperti: '<s> saya', 'saya sedang', 'sedang makan', 'makan nasi', 'nasi kapau'.
-  - Expected output berupa dictionary dengan pasangan key berupa n-length token serta value berupa kemunculan n-length token tersebut di dalam corpus.
-  - Output format berupa dictionary.
+  -> Fungsionalitas model ini adalah menghasilkan koleksi n-gram model.
+  -> Seperti 2-gram, artinya di dalam koleksi terdapat pasangan, seperti: '<s> saya', 'saya sedang', 'sedang makan', 'makan nasi', 'nasi kapau'.
+  -> Expected output berupa dictionary dengan pasangan key berupa n-length token serta value berupa kemunculan n-length token tersebut di dalam corpus.
+  -> Output format berupa dictionary.
   """
   def generate_n_grams(self, data: list[list[str]], n: int, start_token: str = '<s>', end_token='</s>') -> dict:
-    # TODO: Implement based on the given description
-    pass
+    ngram_dict = {}
+    for sen in data:
+      sen.insert(0, start_token)
+      sen.append(end_token)
+      iter = len(sen) -n +1
+
+      for i in range(iter):
+        ngram = ""
+        for j in range(n):
+          idx = i + j
+          ngram = ngram + sen[idx]
+          if j != n-1:
+            ngram = ngram + " "   
+
+        if ngram not in ngram_dict.keys():
+            ngram_dict[ngram] = 1
+        else:
+          freq = ngram_dict[ngram]
+          ngram_dict[ngram] = freq+1
+        ngram = ""
+    print(ngram_dict)
+
+    return ngram_dict
   
   """
   - Fungsionalitas method ini menghitung probabilitas suatu kata given kata/kumpulan kata.
@@ -25,8 +46,20 @@ class NgramModel:
   - Output format berupa float.
   """
   def count_probability(self, predicted_word: str, given_word: list[str], n_gram_counts, n_plus1_gram_counts, vocabulary_size, laplace_number: float = 1.0) -> float:
-    # TODO: Implement based on the given description
-    pass
+    # P(predicted_word | given_word) 
+      # = C(predicted_word) + 1 / C(given_word) + vocabulary_size
+    Cpred = 0
+    Cgiv = 0
+
+    if predicted_word in n_gram_counts.keys():
+      Cpred  =n_gram_counts[predicted_word]
+    if given_word in n_plus1_gram_counts.keys():
+      Cgiv  =n_gram_counts[given_word]
+
+    prob = (Cpred + laplace_number) / (Cgiv + vocabulary_size)
+    
+    return prob
+
   
   """
   - Silakan Anda menggunakan method ini untuk bermain-main/menguji segala kemungkinan sentence/word generation berdasarkan method count_probability yang telah Anda bangun.
@@ -46,8 +79,8 @@ class NgramModel:
   - Fungsionalitas pada method ini adalah untuk mengevaluasi n-gram model Anda menggunakan metrik perplexity.
   """
   def count_perplexity(self, sentence, n_gram_counts, n_plus1_gram_counts, vocab_size, start_token='<s>', end_token = '</s>', laplace_number=1.0):
-    # TODO: Implement based on the given description
-    pass
+    
+    return 0.0
 
 def main():
   """
