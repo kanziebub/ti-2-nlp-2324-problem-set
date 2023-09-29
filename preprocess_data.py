@@ -1,6 +1,7 @@
 import pickle
 import numpy as np
-from aksara import MultiwordTokenizer
+from aksara import BaseTokenizer
+import helper
 
 class Preprocess:
   def __init__(self) -> None:
@@ -33,29 +34,46 @@ class Preprocess:
     return self.test_data
   
   """
-  - Fungsionalitas method di bawah ini adalah melakukan pembersihan kalimat dari simbol newline ('\n').
-  - Di samping itu, method diharapkan dapat melakukan trimming whitespace pada awal dan akhir kalimat.
-  - Output format yang diharapkan berupa list of strings.
+  -> Fungsionalitas method di bawah ini adalah melakukan pembersihan kalimat dari simbol newline ('\n').
+  -> Di samping itu, method diharapkan dapat melakukan trimming whitespace pada awal dan akhir kalimat.
+  -> Output format yang diharapkan berupa list of strings.
   """
   def split_sentences(self, data: list[str]) -> list[str]:
-    # TODO: Implement based on the given description
-    pass
+    stripped_data = []
+    for sen in data:
+      stripped_sen = sen.strip()
+      stripped_data.append(stripped_sen)
+    return stripped_data
   
   """
-  - Fungsionalitas method di bawah ini adalah melakukan tokenisasi pada kalimat.
-  - Sebelum mengerjakan method ini, pastikan Anda telah melakukan eksplorasi pada dataset.
-  - Perlu diperhatikan terdapat dua macam parameter yang disediakan, yakni data dan lower. Parameter lower digunakan untuk melakukan eksperimen lowercasing dan non-lowercasing.
-  - Character/kata pada dataset tidak seluruhnya ascii/latin. Lakukan penanganan/filtering terhadap character/kata non-ascii.
+  -> Fungsionalitas method di bawah ini adalah melakukan tokenisasi pada kalimat.
+  -> Sebelum mengerjakan method ini, pastikan Anda telah melakukan eksplorasi pada dataset.
+  -> Perlu diperhatikan terdapat dua macam parameter yang disediakan, yakni data dan lower. Parameter lower digunakan untuk melakukan eksperimen lowercasing dan non-lowercasing.
+  -> Character/kata pada dataset tidak seluruhnya ascii/latin. Lakukan penanganan/filtering terhadap character/kata non-ascii.
   - Perlu diperhatikan bahwa n-gram merupakan case-sensitive model. Kata "saya" dan "Saya" merupakan dua hal yang berbeda. Silakan Anda tentukan penanganan yang Anda rasa terbaik.
-  - Output format yang diharapkan adalah list of lists of strings.
+  -> Output format yang diharapkan adalah list of lists of strings.
   """
   def tokenize_sentences(self, data: list[str], lower: bool) -> list[list[str]]:
-    # TODO: Implement based on the given description
-    pass
+    tokenized_sentences = []
+    tokenizer = BaseTokenizer()
+
+    if lower:
+      data = [i.lower() for i in data]
+
+    for sen in data:
+      tokenized_sen = tokenizer.tokenize(sen)
+      for part in tokenized_sen:
+        ascii_part = []
+        for word in part:
+          if helper.is_ascii(word):
+            ascii_part.append(word)
+        tokenized_sentences.append(ascii_part)
+    
+    return tokenized_sentences
   
   def get_tokenized_data(self, data: list[str], lower: bool) -> list[list[str]]:
     splitted: list[str] = self.split_sentences(data)
-    tokenized: list[str] = self.tokenize_sentences(splitted, lower)
+    tokenized: list[list[str]] = self.tokenize_sentences(splitted, lower)
     return tokenized
 
   """
