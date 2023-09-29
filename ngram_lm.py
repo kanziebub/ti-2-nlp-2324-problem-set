@@ -35,7 +35,6 @@ class NgramModel:
           freq = ngram_dict[ngram]
           ngram_dict[ngram] = freq+1
         ngram = ""
-    print(ngram_dict)
 
     return ngram_dict
   
@@ -46,17 +45,27 @@ class NgramModel:
   - Output format berupa float.
   """
   def count_probability(self, predicted_word: str, given_word: list[str], n_gram_counts, n_plus1_gram_counts, vocabulary_size, laplace_number: float = 1.0) -> float:
-    # P(predicted_word | given_word) 
-      # = C(predicted_word) + 1 / C(given_word) + vocabulary_size
-    Cpred = 0
-    Cgiv = 0
+    # P(given_word, predicted_word | given_word) 
+      # = C(given_word, predicted_word) + 1 / C(given_word) + vocabulary_size
 
-    if predicted_word in n_gram_counts.keys():
-      Cpred  =n_gram_counts[predicted_word]
+    # Define the n-gram as a tuple of given_word and predicted_word
+    certain_ngram = tuple(given_word + tuple(predicted_word))
+    given = tuple(given_word)
+
+    # Retrieving counts if exists
+    C_ngram = 0
+    C_given = 0
+    if certain_ngram in n_plus1_gram_counts.keys():
+      C_ngram  = n_gram_counts[predicted_word]
     if given_word in n_plus1_gram_counts.keys():
-      Cgiv  =n_gram_counts[given_word]
+      C_given  = n_gram_counts[given]
 
-    prob = (Cpred + laplace_number) / (Cgiv + vocabulary_size)
+    # Laplace Smoothing
+    smooth_C_ngram = C_ngram + laplace_number
+    smooth_C_given = C_given + (vocabulary_size * laplace_number)
+
+    # Calculate Probability
+    prob = smooth_C_ngram/smooth_C_given
     
     return prob
 
