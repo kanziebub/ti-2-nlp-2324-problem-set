@@ -77,12 +77,19 @@ class Preprocess:
     return tokenized
 
   """
-  - Fungsionalitas pada method di bawah ini adalah menghitung kemunculan kata di dalam corpus.
-  - Output format yang diharapkan berupa dictionary dengan pasangan key berupa kata/token dan value berupa jumlah kemunculan kata/token tsb.
+  -> Fungsionalitas pada method di bawah ini adalah menghitung kemunculan kata di dalam corpus.
+  -> Output format yang diharapkan berupa dictionary dengan pasangan key berupa kata/token dan value berupa jumlah kemunculan kata/token tsb.
   """
   def word_map(self, data: list[list[str]]) -> dict:
-    # TODO: Implement based on the given description
-    pass
+    freq_dict = {}
+    for sen in data:
+      for word in sen:
+        if word not in freq_dict.keys():
+          freq_dict[word] = 1
+        else:
+          freq = freq_dict[word]
+          freq_dict[word] = freq+1
+    return freq_dict
   
   """
   - Fungsionalitas pada method di bawah ini adalah melakukan filtering terhadap kata yang kemunculannya di bawah threshold/batasan tertentu.
