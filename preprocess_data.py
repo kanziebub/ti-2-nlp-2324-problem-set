@@ -101,22 +101,23 @@ class Preprocess:
   def filter_vocab_by_threshold(self, data: list[list[str]], num_threshold: int) -> list[str]:
     freq_dict = self.word_map(data)
     vocabs_within_threshold = []
-    for sen in data:
-      for word in sen:
-        if word in freq_dict.keys():
-          f = freq_dict[word]
-          if f >= num_threshold:
-            vocabs_within_threshold.append(word)
+
+    for word, freq in freq_dict.items():
+      if freq >= num_threshold:
+        vocabs_within_threshold.append(word)
+
     return vocabs_within_threshold
   
   """
-  - Fungsionalitas pada method ini adalah mengganti kata-kata yang kemunculannya di bawah threshold menjadi simbol <unk>.
+  -> Fungsionalitas pada method ini adalah mengganti kata-kata yang kemunculannya di bawah threshold menjadi simbol <unk>.
   -> Simbol <unk> melambangkan kata tersebut merupakan OOV (Out of Vocabulary).
   -> Anda diharapkan memahami alur method ini dengan memanfaatkan method preprocess_raw_data.
-  - Output format berupa list of lists of strings.
+  -> Output format berupa list of lists of strings.
   """
   def handle_oov_with_unk(self, data: list[list[str]], vocab: list[str], unknown_token='<unk>') -> list[list[str]]:
     data_handled = []
+    vocab = set(vocab)
+    
     for sen in data:
       sen_handled = []
       for word in sen:
@@ -124,11 +125,15 @@ class Preprocess:
           sen_handled.append(word)
         else:
           sen_handled.append(unknown_token)
+      data_handled.append(sen_handled)
+
     return data_handled
   
   def preprocess_raw_data(self, train, test, threshold):
     vocab = self.filter_vocab_by_threshold(train, threshold)
     train_handled = self.handle_oov_with_unk(train, vocab)
+    print("TRAIN HANDLED")
+    print(train_handled)
     test_handled = self.handle_oov_with_unk(test, vocab)
     return vocab, train_handled, test_handled
   
